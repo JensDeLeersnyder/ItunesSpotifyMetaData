@@ -1,0 +1,15 @@
+def format_artist_list(song_path_list):
+    for song_path in song_path_list:
+        audio_file = eyed3.load(r"{}".format(song_path))
+        artist_not_formatted = audio_file.tag.artist
+        artist_list = artist_not_formatted .split(',')
+
+        song_metadata_artiest = ""
+        for artiest in artist_list:
+            song_metadata_artiest += artiest.strip()
+            song_metadata_artiest += "/"
+        song_metadata_artiest = song_metadata_artiest[0:len(
+            song_metadata_artiest) - 1]
+        print(song_metadata_artiest)
+        audio_file.tag.artist = song_metadata_artiest
+        audio_file.tag.save()

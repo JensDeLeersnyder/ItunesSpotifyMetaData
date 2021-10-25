@@ -1,0 +1,11 @@
+def get_song_information_from_itunes(song_path_list):
+    for song_path in song_path_list:
+        audio_file = eyed3.load(r"{}".format(song_path))
+        print("title: " + audio_file.tag.title + " artist: " + audio_file.tag.artist)
+        link = input("link: ")
+        id_number = link.split('=')[1]
+        track_info = itunespy.lookup(id=id_number)
+        album_info = itunespy.lookup(id=track_info[0].collectionId)
+        add_information_to_song(song_path, track_info[0].trackName, audio_file.tag.artist, track_info[0].collectionName,
+                                track_info[0].releaseDate, track_info[0].trackNumber, album_info[0].primaryGenreName,
+                                track_info[0].artistName)

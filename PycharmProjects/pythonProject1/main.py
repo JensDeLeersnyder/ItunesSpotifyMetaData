@@ -1,7 +1,7 @@
 import eyed3
 from pathlib import Path
 from glob import glob
-import itunespy
+import applemusicspy
 import datetime
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -10,6 +10,8 @@ from shazamio import Shazam
 import urllib.request
 import os
 import re
+
+import errno, stat, shutil
 
 
 def main():
@@ -30,7 +32,7 @@ def main():
     song_paths_list = get_song_paths(directory)
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(shazamInformation(song_paths_list, mode, songSource))
+    loop.run_until_complete(shazamInformation(song_paths_list, mode, songSource, directory))
 
 
 def get_song_paths(directory):
@@ -43,10 +45,11 @@ def get_song_paths(directory):
         underlying_folder_yes_or_no = input(
             "geef \"True\" of \"False\" in als er onderliggende folders zijn: ")
 
+    song_path_list = []
     if underlying_folder_yes_or_no == "true":
         sub_directory_list = glob(directory + "\\*\\")
         for subdirectoryPath in sub_directory_list:
-            song_path_list = list(Path(subdirectoryPath).glob('**/*.mp3'))
+            song_path_list += list(Path(subdirectoryPath).glob('**/*.mp3'))
     else:
         song_path_list = list(Path(directory).glob('./*.mp3'))
 
@@ -72,16 +75,17 @@ def formatdate(releaseDate):
     return date.strftime(belgiumFormat)
 
 
-def get_song_information_from_itunes(id_number):
-    track_info = itunespy.lookup(id=id_number)
-    album_info = itunespy.lookup(id=track_info[0].collectionId)
+def get_song_information_from_itunes(id_number, trackName, albumArtist):
+    track_info = applemusicspy.lookup(itunesID=id_number, trackName=trackName, albumArtist=albumArtist)
+    album_info = applemusicspy.lookup(itunesID=track_info[0].get("collectionId"), trackName=trackName,
+                                      albumArtist=albumArtist)
 
-    SongInformationDictionary = {'trackName': track_info[0].trackName,
-                                 'albumName': track_info[0].collectionName,
-                                 'releaseDate': track_info[0].releaseDate,
-                                 'trackNumber': track_info[0].trackNumber,
-                                 'genre': album_info[0].primaryGenreName,
-                                 'albumArtist': track_info[0].artistName}
+    SongInformationDictionary = {'trackName': track_info[0].get("trackName"),
+                                 'albumName': track_info[0].get("collectionName"),
+                                 'releaseDate': track_info[0].get("releaseDate"),
+                                 'trackNumber': track_info[0].get("trackNumber"),
+                                 'genre': album_info[0].get("primaryGenreName"),
+                                 'albumArtist': track_info[0].get("artistName")}
     return SongInformationDictionary
 
 
@@ -106,7 +110,6 @@ def saveImageFromInternet(urls, albumName):
 
 
 def getSpotifyArtistsAndAlbumArtURL(search_string, mode):
-    # TODO als liedje niet kan gevonden worden op spotify voeg het toe aan een map mislukkelingen
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id="8d84dc2f687d41df81108468b033f500",
                                                                client_secret="5797f75b09fd4111ad1e488060d6a9e9"))
 
@@ -131,13 +134,21 @@ def getSpotifyArtistsAndAlbumArtURL(search_string, mode):
     return spotifyInformation
 
 
-async def shazamInformation(song_paths, mode, songSource):
-    # TODO if song not found move to special folder
+async def shazamInformation(song_paths, mode, songSource, headPath):
     for song_path in song_paths:
         shazam = Shazam()
         out = await shazam.recognize_song(song_path)
+        if out.get("track") is None:
+            failed_directory = headPath + "\\failed"
+            if not os.path.exists(failed_directory):
+                os.mkdir(failed_directory)
+            shutil.move(song_path, failed_directory + "\\{}".format(song_path.name))
+            exit()
+
         itunesId = out.get("track").get("hub").get("actions")[0].get("id")
-        ItunesInformationDictionary = get_song_information_from_itunes(itunesId)
+        trackname = out.get("track").get("urlparams").get("{tracktitle}")
+        albumArtist = out.get("track").get("urlparams").get("{trackartist}")
+        ItunesInformationDictionary = get_song_information_from_itunes(itunesId, trackname, albumArtist)
 
         if songSource == "o":
             spotifySearchStringNotFormatted = out.get("track").get("hub").get("providers")[0].get("actions")[0].get(

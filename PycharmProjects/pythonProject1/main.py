@@ -44,7 +44,7 @@ def get_song_paths(directory):
         print("Foute input")
         underlying_folder_yes_or_no = input(
             "geef \"True\" of \"False\" in als er onderliggende folders zijn: ")
-
+    print("-----------------------------------------------------------")
     song_path_list = []
     if underlying_folder_yes_or_no == "true":
         sub_directory_list = glob(directory + "\\*\\")
@@ -143,46 +143,45 @@ async def shazamInformation(song_paths, mode, songSource, headPath):
             if not os.path.exists(failed_directory):
                 os.mkdir(failed_directory)
             shutil.move(song_path, failed_directory + "\\{}".format(song_path.name))
-            exit()
-
-        itunesId = out.get("track").get("hub").get("actions")[0].get("id")
-        trackname = out.get("track").get("urlparams").get("{tracktitle}")
-        albumArtist = out.get("track").get("urlparams").get("{trackartist}")
-        ItunesInformationDictionary = get_song_information_from_itunes(itunesId, trackname, albumArtist)
-
-        if songSource == "o":
-            spotifySearchStringNotFormatted = out.get("track").get("hub").get("providers")[0].get("actions")[0].get(
-                "uri")
-
-            spotifySearchList = spotifySearchStringNotFormatted.split("%")
-            spotifySearchList[0] = spotifySearchList[0].split(":")[2]
-
-            spotifySearchString = ""
-            for spotifySearchPart in spotifySearchList:
-                spotifySearchString += spotifySearchPart + " "
-            spotifySearchString = re.sub('[0-9]', '', spotifySearchString.strip())
-
-            spotifyInformation = getSpotifyArtistsAndAlbumArtURL(spotifySearchString, mode)
-
-            artists = ""
-            for oneArtist in spotifyInformation.get("artists"):
-                artists += oneArtist + ","
-            artists = artists[0:len(artists) - 1]
         else:
-            audio_file = eyed3.load(r"{}".format(song_path))
-            artists = audio_file.tag.artist
+            itunesId = out.get("track").get("hub").get("actions")[0].get("id")
+            trackname = out.get("track").get("urlparams").get("{tracktitle}")
+            albumArtist = out.get("track").get("urlparams").get("{trackartist}")
+            ItunesInformationDictionary = get_song_information_from_itunes(itunesId, trackname, albumArtist)
 
-        allSongInformation = {'song_path': song_path,
-                              'trackName': ItunesInformationDictionary.get("trackName"),
-                              'artists': artists,
-                              'albumName': ItunesInformationDictionary.get("albumName"),
-                              'releaseDate': ItunesInformationDictionary.get("releaseDate"),
-                              'trackNumber': ItunesInformationDictionary.get("trackNumber"),
-                              'genre': ItunesInformationDictionary.get("genre"),
-                              'albumArtist': ItunesInformationDictionary.get("albumArtist"),
-                              'imageDirectory': spotifyInformation.get("imagePath")
-                              }
-        add_information_to_song(allSongInformation, mode)
+            if songSource == "o":
+                spotifySearchStringNotFormatted = out.get("track").get("hub").get("providers")[0].get("actions")[0].get(
+                    "uri")
+
+                spotifySearchList = spotifySearchStringNotFormatted.split("%")
+                spotifySearchList[0] = spotifySearchList[0].split(":")[2]
+
+                spotifySearchString = ""
+                for spotifySearchPart in spotifySearchList:
+                    spotifySearchString += spotifySearchPart + " "
+                spotifySearchString = re.sub('[0-9]', '', spotifySearchString.strip())
+
+                spotifyInformation = getSpotifyArtistsAndAlbumArtURL(spotifySearchString, mode)
+
+                artists = ""
+                for oneArtist in spotifyInformation.get("artists"):
+                    artists += oneArtist + ","
+                artists = artists[0:len(artists) - 1]
+            else:
+                audio_file = eyed3.load(r"{}".format(song_path))
+                artists = audio_file.tag.artist
+
+            allSongInformation = {'song_path': song_path,
+                                  'trackName': ItunesInformationDictionary.get("trackName"),
+                                  'artists': artists,
+                                  'albumName': ItunesInformationDictionary.get("albumName"),
+                                  'releaseDate': ItunesInformationDictionary.get("releaseDate"),
+                                  'trackNumber': ItunesInformationDictionary.get("trackNumber"),
+                                  'genre': ItunesInformationDictionary.get("genre"),
+                                  'albumArtist': ItunesInformationDictionary.get("albumArtist"),
+                                  'imageDirectory': spotifyInformation.get("imagePath")
+                                  }
+            add_information_to_song(allSongInformation, mode)
 
 
 def initiateTags(song_path):
@@ -210,8 +209,7 @@ def add_information_to_song(songInformation, mode):
 
     with open(songInformation.get("imageDirectory", "rb"), "rb") as cover_art:
         audio_file.tag.images.set(0, cover_art.read(), "image/jpeg")
-    print("\n--------------------------------------------------------- \n"
-          "Name: {} \n"
+    print("Name: {} \n"
           "Artists: {} \n"
           "Album: {} \n"
           "ReleaseDate: {} \n"

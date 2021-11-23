@@ -15,6 +15,7 @@ import shutil
 
 
 def main():
+    print("Artist metadata and albumart is provided by Spotify") 
     directory = r"{}".format(input(
         "Geef het pad in voor de folder waar je de tags wilt veranderen druk 0 in voor te stoppen: "))
     if directory == 0:
@@ -129,8 +130,9 @@ def getSpotifyArtistsAndAlbumArtURL(search_string, mode):
     imageSources = results.get("tracks").get("items")[0].get("album").get("images")
     albumNameFromSpotify = results.get("tracks").get("items")[0].get("album").get("name")
     imagePath = saveImageFromInternet(imageSources, albumNameFromSpotify)
+    url = results.get("tracks").get("items")[0].get("external_urls").get("spotify")
 
-    spotifyInformation = {'artists': artist_list, 'imagePath': imagePath}
+    spotifyInformation = {'artists': artist_list, 'imagePath': imagePath, 'SpotifyURL': url}
     return spotifyInformation
 
 
@@ -181,7 +183,8 @@ async def shazamInformation(song_paths, mode, songSource, headPath):
                                   'trackNumber': ItunesInformationDictionary.get("trackNumber"),
                                   'genre': ItunesInformationDictionary.get("genre"),
                                   'albumArtist': ItunesInformationDictionary.get("albumArtist"),
-                                  'imageDirectory': spotifyInformation.get("imagePath")
+                                  'imageDirectory': spotifyInformation.get("imagePath"),
+                                  'SpotifyURL': spotifyInformation.get("SpotifyURL")
                                   }
             add_information_to_song(allSongInformation, mode)
 
@@ -224,13 +227,15 @@ def add_information_to_song(songInformation, mode):
           "Nr: {} \n"
           "Genre: {} \n"
           "AlbumArtist: {} \n"
+          "Spotify: {} \n"
           "-----------------------------------------------------------".format(songInformation.get("trackName"),
                                                                                artists,
                                                                                songInformation.get("albumName"),
                                                                                releaseYear,
                                                                                songInformation.get("trackNumber"),
                                                                                songInformation.get("genre"),
-                                                                               songInformation.get("albumArtist")))
+                                                                               songInformation.get("albumArtist"),
+                                                                               songInformation.get("SpotifyURL")))
     audio_file.tag.save()
 
 

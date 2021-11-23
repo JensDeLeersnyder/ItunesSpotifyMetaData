@@ -235,7 +235,7 @@ def add_information_to_song(songInformation, mode):
                                                                                songInformation.get("trackNumber"),
                                                                                songInformation.get("genre"),
                                                                                songInformation.get("albumArtist"),
-                                                                               songInformation.get("SpotifyURLC:\Users\gamerjens\Desktop\ItunesSpotifyMetaData work files\test")))
+                                                                               songInformation.get("SpotifyURL")))
     audio_file.tag.save()
 
 

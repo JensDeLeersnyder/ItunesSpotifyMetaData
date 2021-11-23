@@ -111,6 +111,7 @@ def saveImageFromInternet(urls, albumName):
 
 
 def getSpotifyArtistsAndAlbumArtURL(search_string, mode):
+    # catch error if cant find song on spotify
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id="8d84dc2f687d41df81108468b033f500",
                                                                client_secret="5797f75b09fd4111ad1e488060d6a9e9"))
 
@@ -135,58 +136,64 @@ def getSpotifyArtistsAndAlbumArtURL(search_string, mode):
     spotifyInformation = {'artists': artist_list, 'imagePath': imagePath, 'SpotifyURL': url}
     return spotifyInformation
 
+def movetofailed(headPath, song_path):
+    failed_directory = headPath + "\\failed"
+    if not os.path.exists(failed_directory):
+        os.mkdir(failed_directory)
+    shutil.move(song_path, failed_directory + "\\{}".format(song_path.name))
+    print("{} was moved to failed".format(song_path.name))
+    print("-----------------------------------------------------------")
 
 async def shazamInformation(song_paths, mode, songSource, headPath):
     for song_path in song_paths:
         shazam = Shazam()
         out = await shazam.recognize_song(song_path)
         if out.get("track") is None:
-            failed_directory = headPath + "\\failed"
-            if not os.path.exists(failed_directory):
-                os.mkdir(failed_directory)
-            shutil.move(song_path, failed_directory + "\\{}".format(song_path.name))
-            print("{} was moved to failed".format(song_path.name))
-            print("-----------------------------------------------------------")
+            movetofailed(headPath, song_path)
         else:
             itunesId = out.get("track").get("hub").get("actions")[0].get("id")
             trackname = out.get("track").get("urlparams").get("{tracktitle}")
             albumArtist = out.get("track").get("urlparams").get("{trackartist}")
             ItunesInformationDictionary = get_song_information_from_itunes(itunesId, trackname, albumArtist)
+            try:
+                if songSource == "o":
+                    spotifySearchStringNotFormatted = out.get("track").get("hub").get("providers")[0].get("actions")[0].get(
+                        "uri")
 
-            if songSource == "o":
-                spotifySearchStringNotFormatted = out.get("track").get("hub").get("providers")[0].get("actions")[0].get(
-                    "uri")
+                    spotifySearchList = spotifySearchStringNotFormatted.split("%")
+                    spotifySearchList[0] = spotifySearchList[0].split(":")[2]
 
-                spotifySearchList = spotifySearchStringNotFormatted.split("%")
-                spotifySearchList[0] = spotifySearchList[0].split(":")[2]
+                    spotifySearchString = ""
+                    for spotifySearchPart in spotifySearchList:
+                        spotifySearchString += spotifySearchPart + " "
+                    spotifySearchString = re.sub('[0-9]', '', spotifySearchString.strip())
 
-                spotifySearchString = ""
-                for spotifySearchPart in spotifySearchList:
-                    spotifySearchString += spotifySearchPart + " "
-                spotifySearchString = re.sub('[0-9]', '', spotifySearchString.strip())
+                    spotifyInformation = getSpotifyArtistsAndAlbumArtURL(spotifySearchString, mode)
 
-                spotifyInformation = getSpotifyArtistsAndAlbumArtURL(spotifySearchString, mode)
+                    artists = ""
+                    for oneArtist in spotifyInformation.get("artists"):
+                        artists += oneArtist + ","
+                    artists = artists[0:len(artists) - 1]
+                else:
+                    audio_file = eyed3.load(r"{}".format(song_path))
+                    artists = audio_file.tag.artist
 
-                artists = ""
-                for oneArtist in spotifyInformation.get("artists"):
-                    artists += oneArtist + ","
-                artists = artists[0:len(artists) - 1]
-            else:
-                audio_file = eyed3.load(r"{}".format(song_path))
-                artists = audio_file.tag.artist
+                allSongInformation = {'song_path': song_path,
+                                      'headPath': headPath,
+                                      'trackName': ItunesInformationDictionary.get("trackName"),
+                                      'artists': artists,
+                                      'albumName': ItunesInformationDictionary.get("albumName"),
+                                      'releaseDate': ItunesInformationDictionary.get("releaseDate"),
+                                      'trackNumber': ItunesInformationDictionary.get("trackNumber"),
+                                      'genre': ItunesInformationDictionary.get("genre"),
+                                      'albumArtist': ItunesInformationDictionary.get("albumArtist"),
+                                      'imageDirectory': spotifyInformation.get("imagePath"),
+                                      'SpotifyURL': spotifyInformation.get("SpotifyURL")
+                                      }
+                add_information_to_song(allSongInformation, mode)
+            except IndexError:
+                movetofailed(headPath, song_path)
 
-            allSongInformation = {'song_path': song_path,
-                                  'trackName': ItunesInformationDictionary.get("trackName"),
-                                  'artists': artists,
-                                  'albumName': ItunesInformationDictionary.get("albumName"),
-                                  'releaseDate': ItunesInformationDictionary.get("releaseDate"),
-                                  'trackNumber': ItunesInformationDictionary.get("trackNumber"),
-                                  'genre': ItunesInformationDictionary.get("genre"),
-                                  'albumArtist': ItunesInformationDictionary.get("albumArtist"),
-                                  'imageDirectory': spotifyInformation.get("imagePath"),
-                                  'SpotifyURL': spotifyInformation.get("SpotifyURL")
-                                  }
-            add_information_to_song(allSongInformation, mode)
 
 
 def initiateTags(song_path):
@@ -204,39 +211,42 @@ def add_information_to_song(songInformation, mode):
 
     initiateTags(songInformation.get("song_path"))
 
-    audio_file = eyed3.load(r"{}".format(songInformation.get("song_path")))
-    audio_file.tag.title = songInformation.get("trackName")
-    audio_file.tag.artist = artists
-    audio_file.tag.album = songInformation.get("albumName")
-    audio_file.tag.BestDate = releaseYear
-    audio_file.tag.track_num = songInformation.get("trackNumber")
-    audio_file.tag.genre = songInformation.get("genre")
-    audio_file.tag.album_artist = songInformation.get("albumArtist")
+    try:
+        audio_file = eyed3.load(r"{}".format(songInformation.get("song_path")))
+        audio_file.tag.title = songInformation.get("trackName")
+        audio_file.tag.artist = artists
+        audio_file.tag.album = songInformation.get("albumName")
+        audio_file.tag.BestDate = releaseYear
+        audio_file.tag.track_num = songInformation.get("trackNumber")
+        audio_file.tag.genre = songInformation.get("genre")
+        audio_file.tag.album_artist = songInformation.get("albumArtist")
 
-    with open(songInformation.get("imageDirectory", "rb"), "rb") as cover_art:
-        audio_file.tag.images.set(0, cover_art.read(), "image/jpeg")
+        with open(songInformation.get("imageDirectory", "rb"), "rb") as cover_art:
+            audio_file.tag.images.set(0, cover_art.read(), "image/jpeg")
 
-    audio = EasyID3(songInformation.get("song_path"))
-    audio["date"] = releaseYear
-    audio.save()
+        audio = EasyID3(songInformation.get("song_path"))
+        audio["date"] = releaseYear
+        audio.save()
 
-    print("Name: {} \n"
-          "Artists: {} \n"
-          "Album: {} \n"
-          "ReleaseYear: {} \n"
-          "Nr: {} \n"
-          "Genre: {} \n"
-          "AlbumArtist: {} \n"
-          "Spotify: {} \n"
-          "-----------------------------------------------------------".format(songInformation.get("trackName"),
-                                                                               artists,
-                                                                               songInformation.get("albumName"),
-                                                                               releaseYear,
-                                                                               songInformation.get("trackNumber"),
-                                                                               songInformation.get("genre"),
-                                                                               songInformation.get("albumArtist"),
-                                                                               songInformation.get("SpotifyURL")))
-    audio_file.tag.save()
+        print("Name: {} \n"
+              "Artists: {} \n"
+              "Album: {} \n"
+              "ReleaseYear: {} \n"
+              "Nr: {} \n"
+              "Genre: {} \n"
+              "AlbumArtist: {} \n"
+              "Spotify: {} \n"
+              "-----------------------------------------------------------".format(songInformation.get("trackName"),
+                                                                                   artists,
+                                                                                   songInformation.get("albumName"),
+                                                                                   releaseYear,
+                                                                                   songInformation.get("trackNumber"),
+                                                                                   songInformation.get("genre"),
+                                                                                   songInformation.get("albumArtist"),
+                                                                                   songInformation.get("SpotifyURL")))
+        audio_file.tag.save()
+    except ():
+        movetofailed(songInformation.get("headPath"), songInformation.get("song_path"))
 
 
 if __name__ == '__main__':

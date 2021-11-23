@@ -1,3 +1,4 @@
+from _typeshed import NoneType
 import eyed3
 from pathlib import Path
 from glob import glob
@@ -151,11 +152,12 @@ async def shazamInformation(song_paths, mode, songSource, headPath):
         if out.get("track") is None:
             movetofailed(headPath, song_path)
         else:
-            itunesId = out.get("track").get("hub").get("actions")[0].get("id")
-            trackname = out.get("track").get("urlparams").get("{tracktitle}")
-            albumArtist = out.get("track").get("urlparams").get("{trackartist}")
-            ItunesInformationDictionary = get_song_information_from_itunes(itunesId, trackname, albumArtist)
             try:
+                itunesId = out.get("track").get("hub").get("actions")[0].get("id")
+                trackname = out.get("track").get("urlparams").get("{tracktitle}")
+                albumArtist = out.get("track").get("urlparams").get("{trackartist}")
+                ItunesInformationDictionary = get_song_information_from_itunes(itunesId, trackname, albumArtist)
+            
                 if songSource == "o":
                     spotifySearchStringNotFormatted = out.get("track").get("hub").get("providers")[0].get("actions")[0].get(
                         "uri")
@@ -191,7 +193,7 @@ async def shazamInformation(song_paths, mode, songSource, headPath):
                                       'SpotifyURL': spotifyInformation.get("SpotifyURL")
                                       }
                 add_information_to_song(allSongInformation, mode)
-            except IndexError:
+            except (IndexError, TypeError):
                 movetofailed(headPath, song_path)
 
 

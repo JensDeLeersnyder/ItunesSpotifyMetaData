@@ -245,7 +245,7 @@ def add_information_to_song(songInformation, mode):
                                                                                    songInformation.get("albumArtist"),
                                                                                    songInformation.get("SpotifyURL")))
         audio_file.tag.save()
-    except ():
+    except EasyID3:
         movetofailed(songInformation.get("headPath"), songInformation.get("song_path"))
 
 

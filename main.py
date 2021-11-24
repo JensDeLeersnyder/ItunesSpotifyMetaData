@@ -103,7 +103,7 @@ def saveImageFromInternet(urls, albumName):
     if not os.path.exists(saveDirectory):
         os.mkdir(saveDirectory)
 
-    imageSavePlace = os.path.join(saveDirectory, biggestImageUrl.split('/')[len(biggestImageUrl.split('/')) - 1])
+    imageSavePlace = os.path.join(saveDirectory, biggestImageUrl.split('/')[len(biggestImageUrl.split('/')) - 1]) + "png"
 
     urllib.request.urlretrieve(biggestImageUrl, imageSavePlace)
 

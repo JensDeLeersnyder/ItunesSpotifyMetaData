@@ -1,4 +1,3 @@
-from _typeshed import NoneType
 import eyed3
 from pathlib import Path
 from glob import glob

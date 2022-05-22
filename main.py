@@ -112,8 +112,8 @@ def saveImageFromInternet(urls, albumName):
 
 def getSpotifyArtistsAndAlbumArtURL(search_string, mode):
     # catch error if cant find song on spotify
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id="8d84dc2f687d41df81108468b033f500",
-                                                               client_secret="5797f75b09fd4111ad1e488060d6a9e9"))
+    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id="",
+                                                               client_secret=""))
 
     results = sp.search(q=search_string, limit=20)
     if mode == "m":

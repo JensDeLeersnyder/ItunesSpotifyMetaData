@@ -113,7 +113,7 @@ def saveImageFromInternet(urls, albumName):
 def getSpotifyArtistsAndAlbumArtURL(search_string, mode):
     # Read in config from config.cfg file
     config = configparser.ConfigParser()
-    config.read('config.cfg')
+    config.read('.config.cfg')
 
     # catch error if cant find song on spotify
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=config['Spotify']["client_id"],

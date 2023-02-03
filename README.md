@@ -23,7 +23,7 @@ Link: [Download ffmpeg](https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z "f
 
 Installtion guide: [Guide](https://youtu.be/r1AtmY-RMyQ?t=245 "insttion guide ffmpeg")
 #### Linux
-ubuntu:
+Ubuntu:
 ```
 sudo apt install ffmpeg
 ```

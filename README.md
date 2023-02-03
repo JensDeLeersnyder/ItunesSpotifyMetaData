@@ -1,6 +1,9 @@
 # Add metadata to songs from itunes and spotify
 This program will try to recognize songs using the ShazamIO python package and get the album art. `Spotify` is used to get the Artist(s) using the official `Spotify api`. AlbumArtist, ReleaseYear, Genre, TrackNr from `Apple Music` website
 
+## Future of the project
+I would like to add a GUI for the program. And try to fix all bugs in the program
+
 ## Installation
 ### Python dependencies
 Required Pyton version >= Python 3.8.

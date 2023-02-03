@@ -14,7 +14,7 @@ The following command will install the packages according to the configuration f
 pip install -r requirements.txt
 ```
 ### ffmpeg
-#### Windows
+#### Windows:
 Then install ffmpeg this will allow you to use shazam in python
 
 NOTE: You will need `7Zip` to open this file

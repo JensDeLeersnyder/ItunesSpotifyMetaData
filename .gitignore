@@ -1,6 +1,9 @@
 # config
 *.cfg
 
+# Album Art
+AlbumArtImages/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

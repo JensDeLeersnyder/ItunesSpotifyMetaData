@@ -12,7 +12,7 @@ import os
 import re
 from mutagen.easyid3 import EasyID3
 import shutil
-
+import configparser
 
 def main():
     print("Artist metadata and albumart is provided by Spotify") 
@@ -111,9 +111,13 @@ def saveImageFromInternet(urls, albumName):
 
 
 def getSpotifyArtistsAndAlbumArtURL(search_string, mode):
+    # Read in config from config.cfg file
+    config = configparser.ConfigParser()
+    config.read('config.cfg')
+
     # catch error if cant find song on spotify
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id="8d84dc2f687d41df81108468b033f500",
-                                                               client_secret="5797f75b09fd4111ad1e488060d6a9e9"))
+    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=config['Spotify']["client_id"],
+                                                               client_secret=config['Spotify']["client_secret"]))
 
     results = sp.search(q=search_string, limit=20)
     if mode == "m":
@@ -175,6 +179,11 @@ async def shazamInformation(song_paths, mode, songSource, headPath):
                     for oneArtist in spotifyInformation.get("artists"):
                         artists += oneArtist + ","
                     artists = artists[0:len(artists) - 1]
+
+                    allSongInformation = {
+                        'imageDirectory': spotifyInformation.get("imagePath"),
+                        'SpotifyURL': spotifyInformation.get("SpotifyURL")
+                    }
                 else:
                     audio_file = eyed3.load(r"{}".format(song_path))
                     artists = audio_file.tag.artist
@@ -187,9 +196,7 @@ async def shazamInformation(song_paths, mode, songSource, headPath):
                                       'releaseDate': ItunesInformationDictionary.get("releaseDate"),
                                       'trackNumber': ItunesInformationDictionary.get("trackNumber"),
                                       'genre': ItunesInformationDictionary.get("genre"),
-                                      'albumArtist': ItunesInformationDictionary.get("albumArtist"),
-                                      'imageDirectory': spotifyInformation.get("imagePath"),
-                                      'SpotifyURL': spotifyInformation.get("SpotifyURL")
+                                      'albumArtist': ItunesInformationDictionary.get("albumArtist")
                                       }
                 add_information_to_song(allSongInformation, mode)
             except (IndexError, TypeError):
@@ -222,8 +229,9 @@ def add_information_to_song(songInformation, mode):
         audio_file.tag.genre = songInformation.get("genre")
         audio_file.tag.album_artist = songInformation.get("albumArtist")
 
-        with open(songInformation.get("imageDirectory", "rb"), "rb") as cover_art:
-            audio_file.tag.images.set(0, cover_art.read(), "image/jpeg")
+        if mode == "o":
+            with open(songInformation.get("imageDirectory", "rb"), "rb") as cover_art:
+                audio_file.tag.images.set(0, cover_art.read(), "image/jpeg")
 
         audio = EasyID3(songInformation.get("song_path"))
         audio["date"] = releaseYear
@@ -246,7 +254,7 @@ def add_information_to_song(songInformation, mode):
                                                                                    songInformation.get("albumArtist"),
                                                                                    songInformation.get("SpotifyURL")))
         audio_file.tag.save()
-    except EasyID3:
+    except EasyID3.id3:
         movetofailed(songInformation.get("headPath"), songInformation.get("song_path"))
 
 

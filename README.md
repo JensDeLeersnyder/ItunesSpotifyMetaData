@@ -14,6 +14,7 @@ The following command will install the packages according to the configuration f
 pip install -r requirements.txt
 ```
 ### ffmpeg
+#### Windows
 Then install ffmpeg this will allow you to use shazam in python
 
 NOTE: You will need `7Zip` to open this file
@@ -21,6 +22,19 @@ NOTE: You will need `7Zip` to open this file
 Link: [Download ffmpeg](https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z "ffmpeg download link")
 
 Installtion guide: [Guide](https://youtu.be/r1AtmY-RMyQ?t=245 "insttion guide ffmpeg")
+#### Linux
+ubuntu:
+```
+sudo apt install ffmpeg
+```
+Fedora:
+```
+sudo dnf install ffmpeg
+```
+Arch:
+```
+Pacman -S ffmpeg
+```
 
 ### Spotify Credentials
 

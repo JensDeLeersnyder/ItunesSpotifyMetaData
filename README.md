@@ -23,4 +23,6 @@ Installtion guide: [Guide](https://youtu.be/r1AtmY-RMyQ?t=245 "insttion guide ff
 
 You will need to create a spotify developer account and get your Credentials there
 
+## Running
+To Run The program Execute The main.py
 

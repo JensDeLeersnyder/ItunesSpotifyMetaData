@@ -19,4 +19,8 @@ Link:[Download ffmpeg](https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z "ff
 
 Installtion guide: [Guide](https://youtu.be/r1AtmY-RMyQ?t=245 "insttion guide ffmpeg")
 
+### Spotify Credentials
+
+You will need to create a spotify developer account and get your Credentials there
+
 

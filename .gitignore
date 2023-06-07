@@ -1,5 +1,5 @@
 # config
-*.cfg
+config.cfg
 
 # Album Art
 AlbumArtImages/
